@@ -81,6 +81,20 @@ def logout(request):
         'project_name': PROJECT_NAME,
     })
 
+def set_language(request):
+    """
+    Đổi ngôn ngữ giao diện. Nhận ?lang=vi|en|ja, lưu vào session (nhớ cho
+    lần sau), rồi quay về trang vừa xem.
+    """
+    from .translations import LANG_CODES
+
+    lang = request.GET.get('lang')
+    if lang in LANG_CODES:
+        request.session['lang'] = lang
+    back = request.META.get('HTTP_REFERER') or '/'
+    return redirect(back)
+
+
 
 # =========================================================================
 # DEMO TÌM KIẾM (2 kiểu) - tham khảo, có thể xóa khi không cần

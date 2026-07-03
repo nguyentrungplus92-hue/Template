@@ -1,19 +1,20 @@
 {% extends "base.html" %}
+{% load i18n_simple %}
 
-{% block title %}Không có quyền{% endblock %}
+{% block title %}{% t "Không có quyền" %}{% endblock %}
 
 {% block body %}
 <div class="center-wrap">
     <div class="notice-card">
         <div class="big-icon">⛔</div>
-        <h1 class="warn">Không có quyền</h1>
+        <h1 class="warn">{% t "Không có quyền" %}</h1>
         <p class="desc">
-            Tài khoản <strong>{{ username }}</strong> chưa được cấp quyền truy cập. 
-            <!-- <strong>{{project_name}}</strong>. -->  
+            {% t "Tài khoản" %} <strong>{{ username }}</strong> {% t "chưa được cấp quyền truy cập." %}
+            <!-- <strong>{{project_name}}</strong>. -->
         </p>
         <!-- <a class="btn" href="/">Về trang chủ</a> -->
         <hr class="divider">
-        <p class="hint">Vui lòng liên hệ quản trị viên để được cấp quyền.</p>
+        <p class="hint">{% t "Vui lòng liên hệ quản trị viên để được cấp quyền." %}</p>
     </div>
 </div>
 {% endblock %}

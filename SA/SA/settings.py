@@ -50,6 +50,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'home.context_processors.search_config',        # Gắn tìm kiếm vào template để cả dự án cùng dùng chung 1 kiểu
+                'home.context_processors.language_config',      # Gắn đa ngôn ngữ
             ],
         },
     },

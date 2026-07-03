@@ -19,7 +19,7 @@ app_name = 'home'
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('logout/', views.logout, name='logout'),
-
+    path('set-language/', views.set_language, name='set_language'),
     # Demo tìm kiếm (tham khảo, có thể xóa khi không cần)
     path('demo/search-client/', views.demo_search_client, name='demo_search_client'),
     path('demo/search-server/', views.demo_search_server, name='demo_search_server'),

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n_simple %}
 
 {% block title %}Trang chủ - Shipping Advice{% endblock %}
 
@@ -30,21 +31,35 @@
     .feature .ficon { font-size: 32px; margin-bottom: 12px; }
     .feature h3 { font-size: 17px; margin-bottom: 6px; color: var(--text); }
     .feature p { color: var(--muted); font-size: 14px; line-height: 1.5; }
-    /* Thông báo khi không có thẻ nào khớp (ẩn sẵn, JS bật khi cần) */
     .no-result { display: none; color: var(--muted); padding: 24px; text-align: center; }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="content">   <!-- Thêm class "wide" nếu muốn rộng 100% -->
+<div class="content">
     <div class="welcome">
-        <h1>Xin chào, <span class="username">{{ username }}</span> 👋</h1>
-        <p>Hãy chọn các chức năng bên dưới để sử dụng</p>
+        <h1>{% t "Xin chào" %}, <span class="username">{{ username }}</span> 👋</h1>
+        <p>{% t "Hãy chọn các chức năng bên dưới để sử dụng" %}</p>
     </div>
 
     <div class="cards">
         {% block feature_cards %}
-        <a class="feature searchable" data-search="chức năng 1 nghiệp vụ" href="#">
+        <a class="feature searchable" data-search="báo cáo report công thức tính toán mode" href="#">
+            <div class="ficon">🧮</div>
+            <h3>{% t "Báo cáo" %}</h3>
+            <p>{% t "Gợi ý giao hàng theo Mode" %}</p>
+        </a>
+        <a class="feature searchable" data-search="route material vendor delivery time thời gian đi đường" href="#">
+            <div class="ficon">📍</div>
+            <h3>{% t "Route" %}</h3>
+            <p>{% t "Route và Delivery time thời gian đi đường route giao hàng" %}</p>
+        </a>
+        <a class="feature searchable" data-search="maker supplier vendor nhà cung cấp sản xuất" href="#">
+            <div class="ficon">🏭</div>
+            <h3>{% t "Maker" %}</h3>
+            <p>{% t "Quản lý nhà cung cấp của Vendor." %}</p>
+        </a>
+                <a class="feature searchable" data-search="chức năng 1 nghiệp vụ" href="#">
             <div class="ficon">📦</div>
             <h3>Chức năng 1</h3>
             <p>Mô tả ngắn gọn chức năng nghiệp vụ.</p>
@@ -87,6 +102,6 @@
         {% endblock %}
     </div>
 
-    <div class="no-result" id="noResult">Không có chức năng nào khớp từ khóa.</div>
+    <div class="no-result" id="noResult">{% t "Không có chức năng nào khớp từ khóa." %}</div>
 </div>
 {% endblock %}
