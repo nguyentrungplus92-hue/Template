@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Trang chủ - Shipping Advice{% endblock %}
+
+{% block extra_head %}
+<style>
+    .welcome {
+        background: var(--card-bg); border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+        padding: 32px 36px; margin-bottom: 28px;
+    }
+    .welcome h1 { font-size: 24px; margin-bottom: 8px; color: var(--text); }
+    .welcome p { color: var(--muted); font-size: 15px; }
+    .welcome .username { color: var(--brand); font-weight: 600; }
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+    }
+    .feature {
+        background: var(--card-bg); border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+        padding: 24px 26px; text-decoration: none;
+        transition: transform 0.15s, box-shadow 0.15s; display: block;
+    }
+    .feature:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    .feature .ficon { font-size: 32px; margin-bottom: 12px; }
+    .feature h3 { font-size: 17px; margin-bottom: 6px; color: var(--text); }
+    .feature p { color: var(--muted); font-size: 14px; line-height: 1.5; }
+    /* Thông báo khi không có thẻ nào khớp (ẩn sẵn, JS bật khi cần) */
+    .no-result { display: none; color: var(--muted); padding: 24px; text-align: center; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="content">   <!-- Thêm class "wide" nếu muốn rộng 100% -->
+    <div class="welcome">
+        <h1>Xin chào, <span class="username">{{ username }}</span> 👋</h1>
+        <p>Hãy chọn các chức năng bên dưới để sử dụng</p>
+    </div>
+
+    <div class="cards">
+        {% block feature_cards %}
+        <a class="feature searchable" data-search="chức năng 1 nghiệp vụ" href="#">
+            <div class="ficon">📦</div>
+            <h3>Chức năng 1</h3>
+            <p>Mô tả ngắn gọn chức năng nghiệp vụ.</p>
+        </a>
+        <a class="feature searchable" data-search="chức năng 2 nghiệp vụ" href="#">
+            <div class="ficon">📈</div>
+            <h3>Chức năng 2</h3>
+            <p>Mô tả ngắn gọn chức năng nghiệp vụ.</p>
+        </a>
+        <a class="feature searchable" data-search="cấu hình tham số hệ thống" href="#">
+            <div class="ficon">⚙️</div>
+            <h3>Cấu hình</h3>
+            <p>Thiết lập tham số hệ thống.</p>
+        </a>
+        <a class="feature searchable" data-search="báo cáo giao hàng shipping" href="#">
+            <div class="ficon">🚚</div>
+            <h3>Báo cáo giao hàng</h3>
+            <p>Xem thông tin giao hàng dự kiến.</p>
+        </a>
+        <a class="feature searchable" data-search="thống kê tổng hợp dashboard" href="#">
+            <div class="ficon">📊</div>
+            <h3>Thống kê</h3>
+            <p>Tổng hợp số liệu theo kỳ.</p>
+        </a>
+        <a class="feature searchable" data-search="người dùng phân quyền user" href="#">
+            <div class="ficon">👥</div>
+            <h3>Người dùng</h3>
+            <p>Quản lý tài khoản và phân quyền.</p>
+        </a>
+        <a class="feature searchable" data-search="Tìm kiếm trực tiếp trên màn hình" href="/demo/search-client/">
+            <div class="ficon">🔍</div>
+            <h3>Tìm kiếm</h3>
+            <p>Tìm kiếm theo trực tiếp trên màn hình.</p>
+        </a>
+        <a class="feature searchable" data-search="Tìm kiếm qua database" href="demo/live-search/">
+            <div class="ficon">🔎</div>
+            <h3>Tìm kiếm</h3>
+            <p>Tìm kiếm qua database.</p>
+        </a>
+        {% endblock %}
+    </div>
+
+    <div class="no-result" id="noResult">Không có chức năng nào khớp từ khóa.</div>
+</div>
+{% endblock %}

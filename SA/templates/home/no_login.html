@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Chưa đăng nhập{% endblock %}
+
+{% block body %}
+<div class="center-wrap">
+    <div class="notice-card">
+        <div class="big-icon">🔒</div>
+        <h1 class="danger">Chưa đăng nhập</h1>
+        <p class="desc">
+            Bạn cần đăng nhập từ hệ thống chính
+            <strong>SCM_Control</strong> để truy cập
+            <strong>{{ project_name }}</strong>.
+        </p>
+        <a class="btn" href="{{ scm_login_url }}">Đăng nhập SCM Control</a>
+        <hr class="divider">
+        <p class="hint">Hoặc đăng nhập thông qua giao diện <a href="/admin/">administrator</a></p>
+    </div>
+</div>
+{% endblock %}

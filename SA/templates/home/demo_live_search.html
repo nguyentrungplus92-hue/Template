@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Demo live search{% endblock %}
+
+{% block search_placeholder %}Gõ: Auto, FICO, MM, 0B08...{% endblock %}
+{% block search_api %}{% url 'home:live_search_api' %}{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h2 style="color: var(--text); margin-bottom: 8px;">Demo: Live search (gợi ý xổ xuống)</h2>
+    <p style="color: var(--muted); font-size: 14px; line-height: 1.6;">
+        Gõ vào ô tìm kiếm trên thanh trên cùng — gợi ý sẽ xổ xuống ngay dưới ô,
+        không cần nhấn Enter. Bấm vào một gợi ý để mở link trong tab mới.<br>
+        Thử gõ: <strong style="color:var(--brand)">Auto</strong>,
+        <strong style="color:var(--brand)">FICO</strong>,
+        <strong style="color:var(--brand)">MM</strong>, hoặc
+        <strong style="color:var(--brand)">0B08</strong>.<br>
+        Dùng phím ↑ ↓ để chọn, Enter để mở, Esc để đóng.
+    </p>
+    <p class="note">Chú ý: Trong file setting.py để các trường này như sau:
+        <br>SEARCH_MODE = 'live' 
+        <br>SEARCH_API_URL_NAME = 'home:live_search_api'
+    </p>
+</div>
+{% endblock %}

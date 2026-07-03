@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Demo tìm kiếm trên màn hình{% endblock %}
+
+{% block search_mode %}client{% endblock %}
+{% block search_placeholder %}Lọc trong bảng...{% endblock %}
+
+{% block extra_head %}
+<style>
+    .demo-table { width: 100%; border-collapse: collapse; background: var(--card-bg);
+        border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    .demo-table th, .demo-table td { padding: 12px 16px; text-align: left;
+        border-bottom: 1px solid var(--border); }
+    .demo-table th { background: var(--brand); color: #fff; }
+    .demo-table td { color: var(--text); }
+    .note { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h2 style="color: var(--text); margin-bottom: 8px;">Demo: Tìm trên màn hình (client)</h2>
+    <p class="note">Gõ vào ô tìm kiếm trên thanh trên cùng — các dòng không khớp sẽ tự ẩn ngay,
+       không gọi server. Thử gõ "Hà Nội" hoặc "ABC".</p>
+    <p class="note">Chú ý: Trong file setting.py để các trường này như sau:
+        <br>SEARCH_MODE = 'client' 
+        <br># SEARCH_API_URL_NAME = 'home:live_search_api'
+    </p>
+
+    <table class="demo-table">
+        <thead>
+            <tr><th>Mã hàng</th><th>Tên hàng</th><th>Nơi đến</th></tr>
+        </thead>
+        <tbody>
+            <tr class="searchable" data-search="ABC001 Bàn gỗ Hà Nội">
+                <td>ABC001</td><td>Bàn gỗ</td><td>Hà Nội</td></tr>
+            <tr class="searchable" data-search="ABC002 Ghế xoay Hồ Chí Minh">
+                <td>ABC002</td><td>Ghế xoay</td><td>Hồ Chí Minh</td></tr>
+            <tr class="searchable" data-search="XYZ010 Tủ tài liệu Đà Nẵng">
+                <td>XYZ010</td><td>Tủ tài liệu</td><td>Đà Nẵng</td></tr>
+            <tr class="searchable" data-search="XYZ011 Kệ sách Hà Nội">
+                <td>XYZ011</td><td>Kệ sách</td><td>Hà Nội</td></tr>
+            <tr class="searchable" data-search="DEF100 Đèn bàn Hải Phòng">
+                <td>DEF100</td><td>Đèn bàn</td><td>Hải Phòng</td></tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

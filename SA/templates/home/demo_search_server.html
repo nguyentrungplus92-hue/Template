@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Demo tìm kiếm trong database{% endblock %}
+
+{% block search_mode %}server{% endblock %}
+{% block search_action %}{% url 'home:demo_search_server' %}{% endblock %}
+{% block search_placeholder %}Tìm user trong database...{% endblock %}
+
+{% block extra_head %}
+<style>
+    .demo-table { width: 100%; border-collapse: collapse; background: var(--card-bg);
+        border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+    .demo-table th, .demo-table td { padding: 12px 16px; text-align: left;
+        border-bottom: 1px solid var(--border); }
+    .demo-table th { background: var(--brand); color: #fff; }
+    .demo-table td { color: var(--text); }
+    .note { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    .empty { color: var(--muted); padding: 20px; text-align: center; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h2 style="color: var(--text); margin-bottom: 8px;">Demo: Tìm trong database (server)</h2>
+    <p class="note">Gõ vào ô tìm kiếm trên thanh trên cùng rồi nhấn Enter — từ khóa được
+       gửi về server, server truy vấn database rồi trả kết quả.
+       {% if query %}Đang tìm: <strong style="color:var(--brand)">{{ query }}</strong>{% endif %}</p>
+
+    <table class="demo-table">
+        <thead>
+            <tr><th>Username</th><th>Email</th><th>Họ tên</th></tr>
+        </thead>
+        <tbody>
+            {% for u in results %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email|default:"—" }}</td>
+                <td>{{ u.get_full_name|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="empty">
+                {% if query %}Không tìm thấy user nào khớp "{{ query }}".{% else %}Nhập từ khóa để tìm.{% endif %}
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

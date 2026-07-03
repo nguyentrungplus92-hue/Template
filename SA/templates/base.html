@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Shipping Advice{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Báo trình duyệt vẽ thanh cuộn / control theo tông sáng hoặc tối */
+        html { color-scheme: light; }
+        html[data-theme="dark"] { color-scheme: dark; }
+        @media (prefers-color-scheme: dark) {
+            html[data-theme="auto"] { color-scheme: dark; }
+        }
+
+        /* ===== Bảng màu chế độ SÁNG (mặc định) ===== */
+        :root {
+            --brand: #0a4a8f;
+            --brand-dark: #08386c;
+            --danger: #d93025;
+            --warn: #e37400;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #202124;
+            --muted: #5f6368;
+            --border: #e5e7eb;
+            --desc-text: #444444;
+        }
+
+        /* ===== Bảng màu chế độ TỐI ===== */
+        :root[data-theme="dark"] {
+            --brand: #4a9eea;
+            --brand-dark: #3b7fc0;
+            --danger: #ff6b5e;
+            --warn: #ffa726;
+            --bg: #161719;
+            --card-bg: #2a2d30;
+            --text: #f1f3f4;
+            --muted: #b0b4b8;
+            --border: #3c4043;
+            --desc-text: #d5d8db;
+        }
+
+        /* Khi để "auto" -> theo cài đặt hệ điều hành */
+        @media (prefers-color-scheme: dark) {
+            :root[data-theme="auto"] {
+                --brand: #4a9eea;
+                --brand-dark: #3b7fc0;
+                --danger: #ff6b5e;
+                --warn: #ffa726;
+                --bg: #161719;
+                --card-bg: #2a2d30;
+                --text: #f1f3f4;
+                --muted: #b0b4b8;
+                --border: #3c4043;
+                --desc-text: #d5d8db;
+            }
+        }
+
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .topbar {
+            background: var(--brand);
+            color: #fff;
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+        .topbar .brand {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 20px; font-weight: 600;
+        }
+        .topbar .brand-link {
+            color: #fff;
+            text-decoration: none;
+        }
+        .topbar .brand-link:hover {
+            opacity: 0.85;
+        }
+        .topbar .right {
+            display: flex; align-items: center; gap: 18px;
+        }
+        .topbar .user {
+            font-size: 16px; display: flex; align-items: center; gap: 10px;
+        }
+        .topbar .user a { color: #cfe0f5; text-decoration: none; }
+        .topbar .user a:hover { text-decoration: underline; }
+        .topbar .user .user-name { display: inline-flex; align-items: center; gap: 6px; }
+        .topbar .user .user-icon { flex-shrink: 0; }
+
+        /* Nút chuyển sáng/tối */
+        .theme-toggle {
+            background: rgba(255,255,255,0.15);
+            border: none; color: #fff; cursor: pointer;
+            width: 24px; height: 24px; border-radius: 50%;
+            font-size: 14px; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+        }
+        .theme-toggle:hover { background: rgba(255,255,255,0.28); }
+
+        /* Ô tìm kiếm giữa topbar */
+        .topbar .search {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 0 24px;
+            margin: 0;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.28);
+            border-radius: 20px;
+            padding: 0 14px;
+            width: 100%;
+            max-width: 590px;
+            transition: background 0.2s;
+        }
+        .search-box:focus-within { background: rgba(255,255,255,0.4); }
+        .search-box .icon { font-size: 15px; opacity: 0.95; }
+        .search-box input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            color: #fff;
+            font-size: 14px;
+            padding: 9px 10px;
+        }
+        .search-box input::placeholder { color: rgba(255,255,255,0.9); }
+
+        /* Dropdown gợi ý live search */
+        .topbar .search { position: relative; }
+        .search-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 24px; right: 24px;
+            max-width: 590px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+            overflow: hidden;
+            z-index: 100;
+            display: none;
+        }
+        .search-dropdown.open { display: block; }
+        .search-item {
+            display: block;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+        }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover, .search-item.active { background: rgba(127,127,127,0.12); }
+        .search-item .row1 { display: flex; align-items: center; gap: 8px; }
+        .search-item .tag {
+            font-size: 11px; font-weight: 700; padding: 2px 7px;
+            border-radius: 4px; background: var(--brand); color: #fff;
+        }
+        .search-item .code {
+            font-size: 11px; font-weight: 700; padding: 2px 7px;
+            border-radius: 4px; background: rgba(127,127,127,0.18); color: var(--text);
+            margin-left: auto;
+        }
+        .search-item .title { font-size: 14px; font-weight: 600; color: var(--text); }
+        .search-item .desc {
+            font-size: 12px; color: var(--muted); margin-top: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .search-empty { padding: 14px 16px; color: var(--muted); font-size: 13px; text-align: center; }
+
+        /* Vùng nội dung.
+           - Mặc định: rộng tối đa 960px, căn giữa (hợp form, trang gọn).
+           - Thêm class "wide" -> chiếm gần hết bề ngang (hợp bảng dữ liệu, báo cáo).
+             Dùng: <div class="content wide"> ... </div> */
+        .content { width: 100%; max-width: 960px; margin: 40px auto; padding: 0 20px; }
+        .content.wide { max-width: 100%; padding: 0 40px; }
+
+        .center-wrap {
+            flex: 1;
+            display: flex; justify-content: center;
+            align-items: center; padding: 40px 20px;
+            overflow: auto;
+        }
+        .notice-card {
+            background: var(--card-bg); border-radius: 10px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            padding: 48px 56px; max-width: 480px; width: 100%;
+            text-align: center;
+        }
+        .notice-card .big-icon { font-size: 64px; margin-bottom: 24px; }
+        .notice-card h1 { font-size: 30px; margin-bottom: 20px; color: var(--text); }
+        .notice-card h1.danger { color: var(--danger); }
+        .notice-card h1.warn { color: var(--warn); }
+        .notice-card p.desc {
+            color: var(--desc-text); font-size: 16px; line-height: 1.6; margin-bottom: 28px;
+        }
+        .notice-card p.desc strong { color: var(--brand); }
+        .btn {
+            display: inline-block; background: var(--brand); color: #fff;
+            text-decoration: none; padding: 14px 32px; border-radius: 6px;
+            font-size: 16px; font-weight: 600; transition: background 0.2s;
+            border: none; cursor: pointer;
+        }
+        .btn:hover { background: var(--brand-dark); }
+        .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0 16px; }
+        .hint { color: var(--muted); font-size: 13px; }
+        .hint a { color: var(--brand); font-weight: 600; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="topbar">
+        <div class="brand">
+            <span style="font-size: 30px; line-height: 1;">🚚</span>
+            <a href="{% url 'home:dashboard' %}" class="brand-link">{% block brand %}Shipping Advice{% endblock %}</a>
+            <button class="theme-toggle" id="themeToggle" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối">🌓</button>
+        </div>
+
+        {% if username %}
+        <form class="search" method="get"
+              action="{% block search_action %}{% endblock %}"
+              data-mode="{% block search_mode %}{{ SEARCH_MODE|default:'client' }}{% endblock %}"
+              data-api="{% block search_api %}{% if SEARCH_API_URL_NAME %}{% url SEARCH_API_URL_NAME %}{% endif %}{% endblock %}"
+              onsubmit="return window.__onSearchSubmit ? window.__onSearchSubmit(event) : true;">
+            <div class="search-box">
+                <span class="icon">🔍</span>
+                <input type="text" id="topSearch" name="q"
+                       value="{{ request.GET.q|default:'' }}"
+                       placeholder="{% block search_placeholder %}Tìm kiếm...{% endblock %}"
+                       autocomplete="off">
+            </div>
+            <div class="search-dropdown" id="searchDropdown"></div>
+        </form>
+        {% endif %}
+
+        <div class="right">
+            
+            <div class="user">
+                {% block user_area %}
+                    {% if username %}
+                        <span class="user-name">
+                            <svg class="user-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            {{ username }}
+                        </span>
+                        <span>|</span>
+                        <a href="{% url 'home:logout' %}">Đăng xuất</a>
+                    {% endif %}
+                {% endblock %}
+            </div>
+            <!-- <button class="theme-toggle" id="themeToggle" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối">🌓</button> -->
+        </div>
+    </div>
+
+    {% block body %}{% endblock %}
+
+    <script>
+        // Chuyển 3 chế độ giống Django admin: auto -> light -> dark -> auto
+        (function () {
+            var root = document.documentElement;
+            var btn = document.getElementById('themeToggle');
+            var icons = { auto: '🌓', light: '☀️', dark: '🌙' };
+            var order = ['auto', 'light', 'dark'];
+
+            // Khôi phục lựa chọn đã lưu (giống admin - nhớ qua localStorage)
+            var saved = null;
+            try { saved = localStorage.getItem('theme'); } catch (e) {}
+            var current = order.indexOf(saved) >= 0 ? saved : 'auto';
+            apply(current);
+
+            btn.addEventListener('click', function () {
+                var idx = order.indexOf(current);
+                current = order[(idx + 1) % order.length];
+                apply(current);
+                try { localStorage.setItem('theme', current); } catch (e) {}
+            });
+
+            function apply(mode) {
+                root.setAttribute('data-theme', mode);
+                btn.textContent = icons[mode];
+                btn.title = 'Giao diện: ' + mode;
+            }
+        })();
+
+        // ===== Ô TÌM KIẾM: hỗ trợ 3 chế độ =====
+        // - client: lọc ngay các phần tử có class "searchable" trên màn hình.
+        // - server: submit form (GET ?q=...) tới search_action -> view render trang.
+        // - live:   gõ tới đâu gọi ngầm API tới đó, hiện dropdown gợi ý,
+        //           bấm 1 gợi ý -> mở URL của nó ở TAB MỚI.
+        //           (bật bằng cách khai báo block search_api = URL endpoint JSON)
+        (function () {
+            var form = document.querySelector('form.search');
+            if (!form) return;                       // chưa đăng nhập -> không có ô tìm
+            var input = document.getElementById('topSearch');
+            var apiUrl = form.getAttribute('data-api') || '';
+            var mode = form.getAttribute('data-mode') || 'client';
+
+            // Nếu có khai báo API -> ưu tiên chế độ live.
+            if (apiUrl) {
+                setupLive(form, input, apiUrl);
+                return;
+            }
+
+            if (mode === 'server') {
+                window.__onSearchSubmit = function () { return true; };
+                return;
+            }
+
+            // Chế độ client: chặn submit, lọc ngay khi gõ.
+            window.__onSearchSubmit = function (e) { e.preventDefault(); return false; };
+
+            function normalize(s) { return (s || '').toString().toLowerCase().trim(); }
+            function filter() {
+                var kw = normalize(input.value);
+                var items = document.querySelectorAll('.searchable');
+                var visible = 0;
+                items.forEach(function (el) {
+                    var hay = normalize(el.getAttribute('data-search') || el.textContent);
+                    var show = (!kw || hay.indexOf(kw) !== -1);
+                    el.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+                // Nếu trang có phần tử #noResult, hiện nó khi không còn gì khớp
+                var nr = document.getElementById('noResult');
+                if (nr) nr.style.display = (kw && visible === 0) ? 'block' : 'none';
+            }
+            input.addEventListener('input', filter);
+        })();
+
+        // ===== Live search: gọi API + dựng dropdown =====
+        function setupLive(form, input, apiUrl) {
+            var box = document.getElementById('searchDropdown');
+            var timer = null;
+            var activeIdx = -1;
+            var items = [];
+
+            // Không submit form (Enter không tải lại trang)
+            window.__onSearchSubmit = function (e) { e.preventDefault(); return false; };
+
+            input.addEventListener('input', function () {
+                var q = input.value.trim();
+                clearTimeout(timer);
+                if (!q) { close(); return; }
+                // debounce: đợi 250ms sau khi ngừng gõ mới gọi API (đỡ gọi liên tục)
+                timer = setTimeout(function () { fetchSuggestions(q); }, 250);
+            });
+
+            function fetchSuggestions(q) {
+                var url = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'q=' + encodeURIComponent(q);
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) { render(data.results || []); })
+                    .catch(function () { close(); });
+            }
+
+            function esc(s) {
+                return (s || '').toString()
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function render(list) {
+                items = list;
+                activeIdx = -1;
+                if (!list.length) {
+                    box.innerHTML = '<div class="search-empty">Không có kết quả phù hợp</div>';
+                    box.classList.add('open');
+                    return;
+                }
+                box.innerHTML = list.map(function (it) {
+                    var tag = it.tag ? '<span class="tag">' + esc(it.tag) + '</span>' : '';
+                    var code = it.code ? '<span class="code">' + esc(it.code) + '</span>' : '';
+                    var desc = it.desc ? '<div class="desc">' + esc(it.desc) + '</div>' : '';
+                    // target="_blank" -> mở tab mới; rel noopener cho an toàn
+                    return '<a class="search-item" href="' + esc(it.url || '#') + '"' +
+                           ' target="_blank" rel="noopener">' +
+                           '<div class="row1">' + tag +
+                           '<span class="title">' + esc(it.title) + '</span>' + code + '</div>' +
+                           desc + '</a>';
+                }).join('');
+                box.classList.add('open');
+            }
+
+            function close() { box.classList.remove('open'); box.innerHTML = ''; activeIdx = -1; }
+
+            // Điều hướng bằng phím mũi tên + Enter
+            input.addEventListener('keydown', function (e) {
+                var links = box.querySelectorAll('.search-item');
+                if (!links.length) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault(); activeIdx = (activeIdx + 1) % links.length; highlight(links);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault(); activeIdx = (activeIdx - 1 + links.length) % links.length; highlight(links);
+                } else if (e.key === 'Enter') {
+                    if (activeIdx >= 0) { e.preventDefault(); links[activeIdx].click(); }
+                } else if (e.key === 'Escape') {
+                    close();
+                }
+            });
+
+            function highlight(links) {
+                links.forEach(function (l, i) { l.classList.toggle('active', i === activeIdx); });
+            }
+
+            // Bấm ra ngoài -> đóng dropdown
+            document.addEventListener('click', function (e) {
+                if (!form.contains(e.target)) close();
+            });
+        }
+    </script>
+
+    {% block extra_script %}{% endblock %}
+</body>
+</html>

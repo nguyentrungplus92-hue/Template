@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Không có quyền{% endblock %}
+
+{% block body %}
+<div class="center-wrap">
+    <div class="notice-card">
+        <div class="big-icon">⛔</div>
+        <h1 class="warn">Không có quyền</h1>
+        <p class="desc">
+            Tài khoản <strong>{{ username }}</strong> chưa được cấp quyền truy cập. 
+            <!-- <strong>{{project_name}}</strong>. -->  
+        </p>
+        <!-- <a class="btn" href="/">Về trang chủ</a> -->
+        <hr class="divider">
+        <p class="hint">Vui lòng liên hệ quản trị viên để được cấp quyền.</p>
+    </div>
+</div>
+{% endblock %}

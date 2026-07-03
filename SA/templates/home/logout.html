@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Đang đăng xuất...{% endblock %}
+
+{% block body %}
+<div class="center-wrap">
+    <div class="notice-card">
+        <div class="big-icon">👋</div>
+        <h1>Đang đăng xuất...</h1>
+        <p class="desc">Vui lòng đợi trong giây lát.</p>
+    </div>
+</div>
+
+{# Gọi NGẦM trang logout của web mẹ bằng thẻ ảnh ẩn.
+   Trình duyệt tự tải URL này (kèm cookie web mẹ vì cùng host) -> web mẹ
+   xóa phiên của nó. Trang KHÔNG chuyển sang web mẹ. Ảnh "tải lỗi" vì web
+   mẹ trả HTML chứ không phải ảnh, nhưng việc logout vẫn xảy ra. #}
+<img src="{{ scm_logout_url }}" alt="" style="display:none"
+     onload="goHome()" onerror="goHome()">
+
+<script>
+    var _done = false;
+    function goHome() {
+        if (_done) return;      // chỉ chạy 1 lần (onload hoặc onerror)
+        _done = true;
+        // Đợi nhẹ cho chắc web mẹ xử lý xong, rồi về trang chủ web con
+        setTimeout(function () {
+            window.location.href = "{% url 'home:dashboard' %}";
+        }, 300);
+    }
+    // Dự phòng: nếu ảnh không kịp load/error trong 2s thì vẫn về trang chủ
+    setTimeout(goHome, 2000);
+</script>
+{% endblock %}
