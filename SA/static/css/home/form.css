@@ -1,0 +1,103 @@
+/* ============================================================
+   form.css - Kiểu form Thêm/Sửa (đồng bộ dark mode)
+   Dùng biến CSS từ base.html.
+   ============================================================ */
+
+.form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 0 0 8px;
+    overflow: hidden;
+}
+.form-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 24px; border-bottom: 1px solid var(--border);
+}
+.form-head h2 { font-size: 18px; font-weight: 700; color: var(--text); margin: 0; }
+
+/* Lỗi chung của form */
+.form-alert {
+    margin: 16px 24px 0;
+    padding: 12px 16px; border-radius: 8px;
+    background: rgba(217,48,37,0.1); color: var(--danger);
+    font-size: 14px; border: 1px solid rgba(217,48,37,0.3);
+}
+
+/* Mỗi hàng: nhãn bên trái, ô nhập bên phải (2 cột) */
+.form-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px; align-items: start;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+}
+.form-row:last-of-type { border-bottom: none; }
+.form-row label {
+    color: var(--text); font-size: 14px; font-weight: 600;
+    padding-top: 9px;
+}
+.form-row .req { color: var(--danger); margin-left: 3px; }
+
+/* Ô nhập */
+.form-input { min-width: 0; }
+
+/* Style chung cho input, select, textarea */
+.form-input input[type="text"],
+.form-input input[type="number"],
+.form-input input[type="date"],
+.form-input input[type="datetime-local"],
+.form-input select,
+.form-input textarea {
+    width: 100%; box-sizing: border-box;
+    padding: 9px 12px; font-size: 14px; font-family: inherit;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-input input:hover, .form-input select:hover, .form-input textarea:hover {
+    border-color: var(--muted);
+}
+.form-input input:focus, .form-input select:focus, .form-input textarea:focus {
+    outline: none; border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(74,158,234,0.15);
+    background: var(--card-bg);
+}
+.form-input textarea { resize: vertical; min-height: 70px; }
+
+/* Radio và checkbox (nhóm) */
+.form-input ul {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-wrap: wrap; gap: 8px 20px;
+}
+.form-input ul li { display: flex; align-items: center; }
+.form-input ul li label {
+    font-weight: 400; padding: 0 0 0 6px; margin: 0; cursor: pointer;
+}
+.form-input input[type="radio"],
+.form-input input[type="checkbox"] {
+    width: 16px; height: 16px; cursor: pointer; accent-color: var(--brand);
+}
+/* Checkbox đơn (bật/tắt) nằm cùng dòng */
+.form-input > input[type="checkbox"] { width: 18px; height: 18px; }
+
+/* Ghi chú và lỗi dưới trường */
+.form-input .help { display: block; color: var(--muted); font-size: 12px; margin-top: 5px; }
+.form-input .err { display: block; color: var(--danger); font-size: 12px; margin-top: 5px; }
+.form-row.has-error input,
+.form-row.has-error select,
+.form-row.has-error textarea { border-color: var(--danger); }
+
+/* Hàng nút cuối form */
+.form-actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    padding: 18px 24px; border-top: 1px solid var(--border);
+    margin-top: 4px;
+}
+
+/* Responsive: màn nhỏ -> nhãn nằm trên ô nhập */
+@media (max-width: 640px) {
+    .form-row { grid-template-columns: 1fr; gap: 6px; }
+    .form-row label { padding-top: 0; }
+}

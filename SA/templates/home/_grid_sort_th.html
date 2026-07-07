@@ -1,0 +1,11 @@
+{% if sortable_cols and col not in sortable_cols %}
+    <th>{{ label }}</th>
+{% elif sort == col %}
+    {% if dir == 'asc' %}
+    <th class="sortable"><a href="?sort={{ col }}&dir=desc&gq={{ q }}&per_page={{ per_page }}" style="color:inherit;text-decoration:none">{{ label }}<span class="arrow">▲</span></a></th>
+    {% else %}
+    <th class="sortable"><a href="?sort={{ col }}&dir=asc&gq={{ q }}&per_page={{ per_page }}" style="color:inherit;text-decoration:none">{{ label }}<span class="arrow">▼</span></a></th>
+    {% endif %}
+{% else %}
+    <th class="sortable"><a href="?sort={{ col }}&dir=asc&gq={{ q }}&per_page={{ per_page }}" style="color:inherit;text-decoration:none">{{ label }}<span class="arrow">⇅</span></a></th>
+{% endif %}

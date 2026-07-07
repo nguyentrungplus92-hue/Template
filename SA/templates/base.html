@@ -1,3 +1,4 @@
+{% load static %}
 {% load i18n_simple %}<!DOCTYPE html>
 <html lang="{{ CURRENT_LANG|default:'vi' }}" data-theme="auto">
 <head>
@@ -15,6 +16,7 @@
         })();
     </script>
     <title>{% block title %}Shipping Advice{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static 'img/sap_icon (1).png' %}" >
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -101,6 +103,54 @@
         .topbar .brand-link:hover {
             opacity: 0.85;
         }
+
+        /* Menu xổ xuống ở brand (rê chuột để mở) */
+        .brand-menu { position: relative; }
+        .brand-caret { font-size: 12px; opacity: 0.9; }
+        .brand-dropdown {
+            position: absolute; top: 100%; left: 0;
+            margin-top: 8px;
+            background: var(--card-bg); border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            min-width: 210px; z-index: 100;
+            padding: 6px 0;
+            display: none;
+        }
+        /* Vùng đệm vô hình lấp khoảng trống 8px -> rê chuột xuống không bị đóng */
+        .brand-dropdown::before {
+            content: ''; position: absolute; top: -8px; left: 0; right: 0; height: 8px;
+        }
+        /* Menu mở bằng class 'open' (JS điều khiển) */
+        .brand-menu.open > .brand-dropdown { display: block; }
+
+        /* Mục trong menu (mọi cấp) */
+        .brand-dropdown a {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 16px; text-decoration: none;
+            color: var(--text); font-size: 14px; font-weight: 400;
+            white-space: nowrap;
+        }
+        .brand-dropdown a:hover { background: rgba(127,127,127,0.12); }
+
+        /* Mục có submenu: mũi tên ‹ đẩy sang phải */
+        .has-sub { position: relative; }
+        .has-sub > a .sub-caret { margin-left: auto; font-size: 14px; opacity: 0.7; }
+
+        /* Submenu (cấp 2, 3...) xổ sang BÊN PHẢI của mục cha */
+        .submenu {
+            position: absolute; top: -6px; left: 100%;
+            background: var(--card-bg); border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            min-width: 190px; padding: 6px 0;
+            display: none;
+        }
+        /* Vùng đệm ngang để rê sang submenu không bị đóng */
+        .submenu::before {
+            content: ''; position: absolute; top: 0; left: -8px; width: 8px; bottom: 0;
+        }
+        /* Mở submenu khi mục cha có class 'open' (JS), hoặc khi hover (dự phòng) */
+        .has-sub.open > .submenu,
+        .has-sub:hover > .submenu { display: block; }
         .topbar .right {
             display: flex; align-items: center; gap: 18px;
         }
@@ -261,6 +311,31 @@
         .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0 16px; }
         .hint { color: var(--muted); font-size: 13px; }
         .hint a { color: var(--brand); font-weight: 600; }
+
+        /* ===== Overlay loading toàn màn hình ===== */
+        .page-loading {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.45);          /* lớp mờ che trang */
+            backdrop-filter: blur(2px);
+            display: none;                          /* ẩn mặc định */
+            align-items: center; justify-content: center;
+        }
+        .page-loading.show { display: flex; }
+        .pl-box {
+            background: var(--card-bg);
+            padding: 28px 40px; border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+            min-width: 200px;
+        }
+        .pl-spinner {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 4px solid var(--border);
+            border-top-color: var(--brand);
+            animation: pl-spin 0.8s linear infinite;
+        }
+        @keyframes pl-spin { to { transform: rotate(360deg); } }
+        .pl-text { color: var(--text); font-size: 15px; font-weight: 500; }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -268,7 +343,36 @@
     <div class="topbar">
         <div class="brand">
             <span style="font-size: 30px; line-height: 1;">🚚</span>
-            <a href="{% url 'home:dashboard' %}" class="brand-link">{% block brand %}Shipping Advice{% endblock %}</a>
+
+            <div class="brand-menu" id="brandMenu">
+                <a href="{% url 'home:dashboard' %}" class="brand-link">{% block brand %}Shipping Advice{% endblock %} <span class="brand-caret">▾</span></a>
+                <div class="brand-dropdown">
+                    <a href="{% url 'home:dashboard' %}">🏠 {% t "Trang chủ" %}</a>
+
+                    <a href="/demo/grid/">📋 {% t "Danh sách Route" %}</a>
+
+                    {# Mục có submenu cấp 2 #}
+                    <div class="has-sub">
+                        <a href="#">⚙️ {% t "Quản lý" %} <span class="sub-caret">›</span></a>
+                        <div class="submenu">
+                            <a href="/demo/grid-crud/">📝 {% t "Route" %}</a>
+                            <a href="#">🏭 {% t "Maker" %}</a>
+
+                            {# Mục có submenu cấp 3 (lồng tiếp) #}
+                            <div class="has-sub">
+                                <a href="#">📊 {% t "Báo cáo" %} <span class="sub-caret">›</span></a>
+                                <div class="submenu">
+                                    <a href="#">📄 {% t "Theo ngày" %}</a>
+                                    <a href="#">📅 {% t "Theo tháng" %}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="/demo/route/add/">➕ {% t "Thêm Route" %}</a>
+                </div>
+            </div>
+
             <button class="theme-toggle" id="themeToggle" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối">🌓</button>
 
             <div class="lang-switch">
@@ -325,6 +429,14 @@
 
     {% block body %}{% endblock %}
 
+    <!-- Overlay loading: che toàn màn hình khi đang xử lý -->
+    <div class="page-loading" id="pageLoading" aria-hidden="true">
+        <div class="pl-box">
+            <div class="pl-spinner"></div>
+            <div class="pl-text">{% t "Đang xử lý yêu cầu..." %}</div>
+        </div>
+    </div>
+
     <script>
         // Chuyển 3 chế độ giống Django admin: auto -> light -> dark -> auto
         (function () {
@@ -374,7 +486,92 @@
                 menu.classList.remove('open');
             });
         })();
-        // - client: lọc ngay các phần tử có class "searchable" trên màn hình.
+        // ===== Menu brand nhiều cấp (rê chuột, có độ trễ khi đóng) =====
+        (function () {
+            var brandMenu = document.getElementById('brandMenu');
+            if (!brandMenu) return;
+            var closeTimer = null;
+
+            // Mở menu chính khi rê vào; đóng có độ trễ khi rê ra
+            brandMenu.addEventListener('mouseenter', function () {
+                clearTimeout(closeTimer);
+                brandMenu.classList.add('open');
+            });
+            brandMenu.addEventListener('mouseleave', function () {
+                // Trễ 250ms mới đóng -> kịp rê chuột giữa các phần
+                closeTimer = setTimeout(function () {
+                    brandMenu.classList.remove('open');
+                    // đóng luôn mọi submenu
+                    brandMenu.querySelectorAll('.has-sub.open').forEach(function (el) {
+                        el.classList.remove('open');
+                    });
+                }, 250);
+            });
+
+            // Submenu các cấp: rê vào mục cha thì mở submenu của nó
+            brandMenu.querySelectorAll('.has-sub').forEach(function (sub) {
+                sub.addEventListener('mouseenter', function () {
+                    clearTimeout(closeTimer);
+                    sub.classList.add('open');
+                });
+                sub.addEventListener('mouseleave', function () {
+                    sub.classList.remove('open');
+                });
+            });
+        })();
+
+        // ===== Overlay loading: tự hiện khi submit form / chuyển trang =====
+        (function () {
+            var overlay = document.getElementById('pageLoading');
+            if (!overlay) return;
+
+            function show() {
+                overlay.classList.add('show');
+                // Van an toàn: nếu sau 15s trang vẫn chưa chuyển (vd link tải file
+                // lọt lưới), tự ẩn để người dùng không bị kẹt.
+                clearTimeout(window.__loadingSafety);
+                window.__loadingSafety = setTimeout(function () {
+                    overlay.classList.remove('show');
+                }, 15000);
+            }
+            window.showLoading = show;
+            window.hideLoading = function () { overlay.classList.remove('show'); };
+
+            // 1) Khi submit form (trừ form tìm kiếm client/live không tải lại)
+            document.addEventListener('submit', function (e) {
+                var form = e.target;
+                if (form.classList.contains('search')) {
+                    var mode = form.getAttribute('data-mode');
+                    var api = form.getAttribute('data-api');
+                    if (api || mode === 'client') return;
+                }
+                show();
+            });
+
+            // 2) Khi bấm link chuyển trang (thẻ <a> có href thật)
+            document.addEventListener('click', function (e) {
+                var a = e.target.closest('a');
+                if (!a) return;
+                var href = a.getAttribute('href');
+                if (!href || href === '#' || href.charAt(0) === '#') return;
+                if (href.indexOf('javascript:') === 0) return;
+                if (a.target === '_blank') return;
+                if (a.hasAttribute('download')) return;
+                // BỎ QUA link TẢI FILE (không chuyển trang -> loading sẽ kẹt):
+                //  - link xuất file (export), hoặc có class 'no-loading'
+                //  - đuôi file phổ biến (.csv .xlsx .xls .pdf .zip .doc .docx ...)
+                if (a.classList.contains('no-loading')) return;
+                if (href.indexOf('/export') !== -1 || href.indexOf('format=csv') !== -1
+                    || href.indexOf('format=xlsx') !== -1 || href.indexOf('format=pdf') !== -1) return;
+                if (/\.(csv|xlsx?|pdf|zip|docx?|pptx?|txt|png|jpe?g)(\?|$)/i.test(href)) return;
+                show();
+            });
+
+            // 3) Bấm Back -> trang lấy từ cache, ẩn overlay đi
+            window.addEventListener('pageshow', function () {
+                overlay.classList.remove('show');
+            });
+        })();
         // - server: submit form (GET ?q=...) tới search_action -> view render trang.
         // - live:   gõ tới đâu gọi ngầm API tới đó, hiện dropdown gợi ý,
         //           bấm 1 gợi ý -> mở URL của nó ở TAB MỚI.

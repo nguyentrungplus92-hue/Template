@@ -190,3 +190,353 @@ def live_search_api(request):
         ]
 
     return JsonResponse({'results': results})
+
+
+
+
+# =========================================================================
+# GRIDVIEW - 3 dạng bảng dữ liệu (tham khảo, có thể xóa)
+# Dữ liệu mẫu dùng chung; dự án thật thay bằng truy vấn database.
+# =========================================================================
+
+def _sample_rows():
+    """Dữ liệu mẫu cho các bảng demo (thay bằng Model.objects... khi dùng thật).
+
+    Sinh tự động >50 dòng bằng vòng lặp để thử phân trang. Khi dùng thật,
+    thay toàn bộ hàm này bằng truy vấn database, vd:
+        return list(Route.objects.values('id','code','name','vendor','days','status'))
+    """
+    cities = ['Hà Nội', 'Hải Phòng', 'Đà Nẵng', 'HCM', 'Cần Thơ', 'Huế',
+              'Vũng Tàu', 'Đà Lạt', 'Lào Cai', 'Nha Trang', 'Quy Nhơn',
+              'Buôn Ma Thuột', 'Vinh', 'Hạ Long', 'Phú Quốc']
+    vendors = ['Vendor A', 'Vendor B', 'Vendor C', 'Vendor D', 'Vendor E']
+    statuses = ['ok', 'ok', 'ok', 'warn', 'danger']   # 'ok' nhiều hơn cho thực tế
+
+    rows = []
+    for i in range(1, 610000):        # 60 dòng
+        origin = cities[i % len(cities)]
+        dest = cities[(i * 3 + 2) % len(cities)]
+        rows.append({
+            'id': i,
+            'code': 'RT%03d' % i,             # RT001, RT002, ...
+            'name': '%s - %s' % (origin, dest),
+            'vendor': vendors[i % len(vendors)],
+            'days': (i % 5) + 1,              # 1..5
+            'status': statuses[i % len(statuses)],
+        })
+    return rows
+
+
+def demo_grid_display(request):
+    """Dạng 1: bảng hiển thị + sắp xếp + phân trang (bằng Django/server)."""
+    from django.core.paginator import Paginator
+
+    rows = _sample_rows()
+
+    # --- Tìm kiếm (server): lọc TOÀN BỘ dữ liệu theo ?q= ---
+    # Khi dùng thật, nên lọc ở database: Route.objects.filter(Q(code__icontains=q)|...)
+    # thay vì lọc list trong Python (nhanh hơn với dữ liệu lớn).
+    q = (request.GET.get('gq') or '').strip().lower()
+    if q:
+        # Tìm TẤT CẢ cột. Muốn giới hạn -> thêm fields, vd:
+        #   _match_row(r, q, fields=['code', 'name', 'vendor'])
+        rows = [r for r in rows if _match_row(r, q)]
+
+    # --- Sắp xếp. Mặc định cho sort HẾT cột.
+    #     Muốn giới hạn -> _sort_rows(rows, request, sortable=['code','days'])
+    #     và truyền 'sortable_cols' cùng danh sách đó ra template. ---
+    rows, sort, direction = _sort_rows(rows, request)
+    SORTABLE_COLS = None   # None = sort hết; hoặc ['code','name'] để giới hạn
+
+    # --- Phân trang ---
+    PER_PAGE = _get_per_page(request)
+    paginator = Paginator(rows, PER_PAGE)
+    page = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'home/demo_grid_display.html', {
+        'username': get_username_from_request(request),
+        'page': page,
+        'page_window': _page_window(page),
+        'sort': sort,
+        'dir': direction,
+        'q': q,
+        'per_page': PER_PAGE,
+        'per_page_choices': PER_PAGE_CHOICES,
+        'sortable_cols': SORTABLE_COLS,
+    })
+
+
+PER_PAGE_CHOICES = [25, 50, 100, 200, 500]
+DEFAULT_PER_PAGE = 100
+
+
+def _get_per_page(request):
+    """Đọc số dòng/trang do người dùng chọn (?per_page=), chỉ nhận giá trị
+    trong PER_PAGE_CHOICES; ngoài danh sách -> dùng mặc định."""
+    try:
+        val = int(request.GET.get('per_page', DEFAULT_PER_PAGE))
+    except (TypeError, ValueError):
+        val = DEFAULT_PER_PAGE
+    return val if val in PER_PAGE_CHOICES else DEFAULT_PER_PAGE
+
+
+def _page_window(page, width=2):
+    """
+    Trả về danh sách số trang cần hiện: vài trang quanh trang hiện tại,
+    cộng trang đầu/cuối, chèn None ở chỗ bị lược (hiển thị thành '...').
+    Ví dụ trang 25/50 -> [1, None, 23, 24, 25, 26, 27, None, 50].
+    width = số trang hiện mỗi bên quanh trang hiện tại.
+    """
+    current = page.number
+    total = page.paginator.num_pages
+
+    # Tập các trang cần hiện: đầu, cuối, và quanh trang hiện tại
+    pages = set([1, total])
+    for p in range(current - width, current + width + 1):
+        if 1 <= p <= total:
+            pages.add(p)
+
+    # Sắp xếp và chèn None vào chỗ có khoảng trống (>1 bậc)
+    result = []
+    prev = 0
+    for p in sorted(pages):
+        if prev and p - prev > 1:
+            result.append(None)      # None -> render thành '...'
+        result.append(p)
+        prev = p
+    return result
+
+
+# Tất cả cột có thể sort (khi trang muốn "sort hết")
+_ALL_SORT_COLS = {'code', 'name', 'vendor', 'days', 'status'}
+
+
+def _sort_rows(rows, request, sortable=None):
+    """
+    Sắp xếp rows theo ?sort=&dir=. Hỗ trợ 2 cách giống tìm kiếm:
+
+    CÁCH 1 - Sort HẾT các cột (mặc định, sortable=None):
+        _sort_rows(rows, request)
+
+    CÁCH 2 - Chỉ CHO SORT vài cột:
+        _sort_rows(rows, request, sortable=['code', 'days'])
+        -> bấm cột ngoài danh sách sẽ bị bỏ qua (không sort).
+
+    Trả về (rows đã sắp xếp, sort, direction).
+    """
+    allowed = _ALL_SORT_COLS if sortable is None else set(sortable)
+    sort = request.GET.get('sort', '')
+    direction = request.GET.get('dir', 'asc')
+    if sort in allowed:
+        rows = sorted(rows, key=lambda r: r[sort], reverse=(direction == 'desc'))
+    else:
+        sort = ''   # cột không được phép -> coi như chưa sort
+    return rows, sort, direction
+
+
+def _match_row(row, q, fields=None):
+    """
+    Kiểm tra 1 dòng có khớp từ khóa q không. Hỗ trợ 2 cách:
+
+    CÁCH 1 - Tìm TẤT CẢ cột (mặc định, fields=None):
+        _match_row(row, q)
+        -> ghép mọi giá trị (trừ 'id') thành chuỗi rồi tìm.
+
+    CÁCH 2 - Tìm CHỈ các cột chỉ định (truyền fields):
+        _match_row(row, q, fields=['code', 'name', 'vendor'])
+        -> chỉ tìm trong các cột liệt kê.
+
+    Đổi cách nào tùy trang: gọi view truyền fields hoặc không.
+    """
+    if fields is None:
+        # CÁCH 1: quét tất cả cột (trừ id)
+        haystack = ' '.join(str(v).lower() for k, v in row.items() if k != 'id')
+    else:
+        # CÁCH 2: chỉ các cột chỉ định
+        haystack = ' '.join(str(row.get(f, '')).lower() for f in fields)
+    return q in haystack
+
+
+def _filter_sort_rows(request, search_fields=None):
+    """Lọc + sắp xếp dữ liệu theo tham số hiện tại (dùng chung cho grid + export).
+    search_fields=None -> tìm tất cả cột; hoặc truyền list cột để giới hạn.
+    Trả về list dòng đã lọc/sắp xếp (CHƯA phân trang)."""
+    rows = _sample_rows()
+    q = (request.GET.get('gq') or '').strip().lower()
+    if q:
+        rows = [r for r in rows if _match_row(r, q, search_fields)]
+    sort = request.GET.get('sort', '')
+    direction = request.GET.get('dir', 'asc')
+    if sort in {'code', 'name', 'vendor', 'days', 'status'}:
+        rows = sorted(rows, key=lambda r: r[sort], reverse=(direction == 'desc'))
+    return rows
+
+
+# Nhãn cột khi xuất file (thứ tự cột + tiêu đề)
+_EXPORT_COLUMNS = [
+    ('code', 'Mã Route'),
+    ('name', 'Tuyến'),
+    ('vendor', 'Vendor'),
+    ('days', 'Số ngày'),
+    ('status', 'Trạng thái'),
+]
+
+
+def grid_export(request):
+    """Xuất dữ liệu grid theo bộ lọc/tìm hiện tại. ?format=csv|xlsx.
+    (PDF chưa làm - cần thư viện ngoài.)"""
+    fmt = request.GET.get('format', 'csv')
+    rows = _filter_sort_rows(request)
+
+    if fmt == 'xlsx':
+        return _export_xlsx(rows)
+    return _export_csv(rows)   # mặc định csv
+
+
+def _export_csv(rows):
+    """Xuất CSV. Dùng thư viện csv có sẵn của Python (không cần cài gì).
+    BOM utf-8-sig để Excel mở tiếng Việt không lỗi font."""
+    import csv
+    from django.http import HttpResponse
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="routes.csv"'
+    response.write('\ufeff')   # BOM cho Excel đọc UTF-8
+
+    writer = csv.writer(response)
+    writer.writerow([label for _, label in _EXPORT_COLUMNS])   # tiêu đề
+    for r in rows:
+        writer.writerow([r[key] for key, _ in _EXPORT_COLUMNS])
+    return response
+
+
+def _export_xlsx(rows):
+    """Xuất Excel .xlsx bằng openpyxl (đã có trong requirements)."""
+    from django.http import HttpResponse
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill
+    except ImportError:
+        # openpyxl chưa cài -> báo nhẹ, không vỡ
+        from django.http import HttpResponse as _R
+        return _R('Cần cài openpyxl: pip install openpyxl', status=500)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Routes'
+
+    # Tiêu đề in đậm, nền màu
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill('solid', fgColor='0A4A8F')
+    for col_idx, (_, label) in enumerate(_EXPORT_COLUMNS, start=1):
+        cell = ws.cell(row=1, column=col_idx, value=label)
+        cell.font = header_font
+        cell.fill = header_fill
+
+    # Dữ liệu
+    for row_idx, r in enumerate(rows, start=2):
+        for col_idx, (key, _) in enumerate(_EXPORT_COLUMNS, start=1):
+            ws.cell(row=row_idx, column=col_idx, value=r[key])
+
+    # Giãn cột cho dễ đọc
+    for col_idx, (key, label) in enumerate(_EXPORT_COLUMNS, start=1):
+        width = max(len(str(label)), 14)
+        ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = width
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="routes.xlsx"'
+    wb.save(response)
+    return response
+
+
+def demo_grid_crud(request):
+    """Dạng 2: bảng có nút Thêm/Sửa/Xóa (CRUD) + sort + phân trang.
+    Thao tác Sửa/Xóa qua trang riêng nên không xung đột phân trang."""
+    from django.core.paginator import Paginator
+
+    rows = _sample_rows()
+
+    # Tìm kiếm (server) theo ?q=
+    q = (request.GET.get('gq') or '').strip().lower()
+    if q:
+        # Tìm TẤT CẢ cột. Muốn giới hạn -> _match_row(r, q, fields=[...])
+        rows = [r for r in rows if _match_row(r, q)]
+
+    # Sắp xếp - VÍ DỤ Cách 2: chỉ cho sort vài cột (code, vendor, days).
+    # Cột 'name' và 'status' sẽ hiện tiêu đề tĩnh, không bấm sort được.
+    SORTABLE_COLS = ['code', 'vendor', 'days']
+    rows, sort, direction = _sort_rows(rows, request, sortable=SORTABLE_COLS)
+
+    # Phân trang
+    PER_PAGE = _get_per_page(request)
+    paginator = Paginator(rows, PER_PAGE)
+    page = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'home/demo_grid_crud.html', {
+        'username': get_username_from_request(request),
+        'page': page,
+        'page_window': _page_window(page),
+        'sort': sort,
+        'dir': direction,
+        'q': q,
+        'per_page': PER_PAGE,
+        'per_page_choices': PER_PAGE_CHOICES,
+        'sortable_cols': SORTABLE_COLS,
+    })
+
+
+def demo_grid_editable(request):
+    """Dạng 3: bảng chỉnh sửa trực tiếp (editable). Sửa tại ô, bấm Lưu ->
+    gửi toàn bộ thay đổi 1 lần. Demo hiển thị giao diện + JS thu thập thay đổi."""
+    return render(request, 'home/demo_grid_editable.html', {
+        'username': get_username_from_request(request),
+        'rows': _sample_rows(),
+    })
+
+
+def route_form(request, pk=None):
+    """
+    Form Thêm/Sửa dùng chung. pk=None -> Thêm mới; pk có giá trị -> Sửa.
+
+    Luồng chuẩn của Django Form:
+    - GET  : hiện form (rỗng khi thêm, điền sẵn dữ liệu khi sửa).
+    - POST : nhận dữ liệu -> form.is_valid() tự validate:
+             + hợp lệ  -> lưu (ở đây demo chỉ in ra) rồi redirect.
+             + lỗi     -> render lại form kèm thông báo lỗi từng trường.
+    """
+    from .forms import RouteForm
+
+    is_edit = pk is not None
+
+    # Khi SỬA: nạp dữ liệu cũ vào form (demo dùng dữ liệu mẫu).
+    # Thật: instance = get_object_or_404(Route, pk=pk); form = RouteForm(instance=...)
+    initial = {}
+    if is_edit:
+        for r in _sample_rows():
+            if str(r['id']) == str(pk):
+                initial = {
+                    'code': r['code'], 'name': r['name'],
+                    'days': r['days'], 'vendor': r.get('vendor', ''),
+                    'status': r['status'],
+                }
+                break
+
+    if request.method == 'POST':
+        form = RouteForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            # DEMO: chỉ in ra. Thật: tạo/cập nhật bản ghi rồi lưu database.
+            print('Dữ liệu hợp lệ, sẽ lưu:', data)
+            # Sau khi lưu -> quay về danh sách
+            return redirect('home:demo_grid_crud')
+        # Không hợp lệ -> rơi xuống, render lại form (đã có lỗi đính kèm)
+    else:
+        form = RouteForm(initial=initial)
+
+    return render(request, 'home/route_form.html', {
+        'username': get_username_from_request(request),
+        'form': form,
+        'is_edit': is_edit,
+        'back_url': '/demo/grid-crud/',
+    })

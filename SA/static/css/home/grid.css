@@ -1,0 +1,235 @@
+/* ============================================================
+   grid.css - Kiểu bảng dữ liệu dùng chung (đồng bộ dark mode)
+   Dùng biến CSS từ base.html (--card-bg, --text, --brand...).
+   ============================================================ */
+
+/* Khung bao bảng */
+.grid-wrap {
+    background: var(--card-bg);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+/* Thanh công cụ trên bảng (bố cục 2 hàng) */
+.grid-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+}
+/* Hàng 1: title + nút Thêm (trái) | ô tìm (phải) */
+.gh-row1 {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+}
+.gh-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.gh-left h2 {
+    font-size: 18px; font-weight: 700; color: var(--text); margin: 0;
+    letter-spacing: -0.01em;
+}
+.gh-search { flex-shrink: 0; }
+/* Hàng 2: các nút chức năng (xuất file...) */
+.gh-row2 {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-top: 14px;
+}
+/* Cụm nút đẩy sang phải trong hàng 2 (vd Lưu/Hoàn tác ở Dạng editable) */
+.gh-row2-right { display: flex; gap: 8px; margin-left: auto; }
+
+/* (giữ .grid-toolbar cũ cho tương thích nếu còn template dùng) */
+.grid-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+.grid-toolbar h2 {
+    font-size: 18px; font-weight: 700; color: var(--text); margin: 0;
+    letter-spacing: -0.01em;
+}
+.grid-toolbar .tools { display: flex; gap: 10px; align-items: center; }
+
+/* Ô tìm kiếm riêng trên bảng */
+.grid-search { display: flex; gap: 8px; align-items: center; }
+.grid-search input {
+    padding: 8px 13px; font-size: 14px; font-family: inherit;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    min-width: 220px; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.grid-search input:focus {
+    outline: none; border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(74,158,234,0.15);
+}
+
+/* Cho các nút trong thanh công cụ tự xuống hàng gọn khi chật */
+.grid-toolbar .tools { flex-wrap: wrap; }
+
+/* Vùng cuộn: giới hạn chiều cao -> bảng cuộn TRONG khung, header dính đỉnh.
+   Dùng calc() để khung cao theo MÀN HÌNH, tự co giãn mọi kích cỡ:
+   100vh trừ đi topbar + lề + thanh công cụ + THANH PHÂN TRANG (~300px).
+   Chỉnh số 300px nếu bị che hoặc thừa: bị che -> tăng; thừa -> giảm. */
+.grid-scroll {
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: calc(100vh - 300px);
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Bảng */
+.grid {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    font-size: 14px; color: var(--text);
+}
+
+/* Header: dính đỉnh khung cuộn. Nền ĐẶC để dữ liệu cuộn qua không lộ sau. */
+.grid thead th {
+    background: var(--card-bg);
+    color: var(--muted);
+    text-align: left; font-weight: 600; font-size: 12px;
+    letter-spacing: 0.03em; text-transform: uppercase;
+    padding: 14px 18px; white-space: nowrap;
+    border-bottom: 2px solid var(--border);
+    position: sticky; top: 0; z-index: 2;
+}
+/* Bóng nhẹ dưới header khi có dữ liệu cuộn bên dưới (tạo cảm giác nổi) */
+.grid thead::after {
+    content: ''; position: sticky; top: 0;
+}
+
+/* Ô dữ liệu: thoáng hơn */
+.grid tbody td {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);   /* kẻ dọc giữa các cột */
+    color: var(--text); vertical-align: middle;
+}
+.grid tbody td:last-child { border-right: none; }   /* cột cuối không kẻ */
+.grid tbody tr:last-child td { border-bottom: none; }
+
+/* Kẻ dọc cho cả header để thẳng hàng với ô dữ liệu */
+.grid thead th { border-right: 1px solid var(--border); }
+.grid thead th:last-child { border-right: none; }
+
+/* Hover: tô nhẹ + viền trái màu thương hiệu cho cảm giác "được chọn" */
+.grid tbody tr { transition: background 0.12s; }
+.grid tbody tr:hover td { background: rgba(74,158,234,0.06); }
+
+/* Cột đầu (mã) in đậm nhẹ cho nổi */
+.grid tbody td:first-child { font-weight: 600; }
+
+/* Căn phải / giữa */
+.grid .num { text-align: right; font-variant-numeric: tabular-nums; }
+.grid .center { text-align: center; }
+
+/* Cột sắp xếp được */
+.grid th.sortable { cursor: pointer; user-select: none; transition: color 0.15s; }
+.grid th.sortable:hover { color: var(--brand); }
+.grid th.sortable .arrow { opacity: 0.5; font-size: 11px; margin-left: 5px; }
+
+/* Nhãn trạng thái (badge) - có chấm tròn nhỏ phía trước */
+.badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; line-height: 1.4;
+}
+.badge::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; flex-shrink: 0;
+}
+.badge.ok     { background: rgba(52,168,83,0.14);  color: #2e9e4b; }
+.badge.warn   { background: rgba(227,116,0,0.14);  color: var(--warn); }
+.badge.danger { background: rgba(217,48,37,0.14);  color: var(--danger); }
+.badge.muted  { background: rgba(127,127,127,0.14); color: var(--muted); }
+
+/* Nút nhỏ trong bảng */
+.btn-sm {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text); text-decoration: none; cursor: pointer;
+    transition: all 0.15s;
+}
+.btn-sm:hover { background: rgba(127,127,127,0.1); border-color: var(--muted); }
+.btn-sm.primary {
+    background: var(--brand); color: #fff; border-color: var(--brand);
+    box-shadow: 0 2px 8px rgba(74,158,234,0.25);
+}
+.btn-sm.primary:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+.btn-sm.danger { color: var(--danger); border-color: transparent; }
+.btn-sm.danger:hover { background: rgba(217,48,37,0.1); border-color: var(--danger); }
+
+/* Ô nhập trong bảng editable - mềm mại, focus rõ */
+.grid input.cell-edit, .grid select.cell-edit {
+    width: 100%; box-sizing: border-box;
+    padding: 8px 11px; font-size: 14px; font-family: inherit;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.grid input.cell-edit:hover, .grid select.cell-edit:hover {
+    border-color: var(--muted);
+}
+.grid input.cell-edit:focus, .grid select.cell-edit:focus {
+    outline: none; border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(74,158,234,0.15);
+    background: var(--card-bg);
+}
+/* Dòng đã sửa chưa lưu: viền trái màu thương hiệu + nền nhạt */
+.grid tr.dirty td { background: rgba(74,158,234,0.07); }
+.grid tr.dirty td:first-child {
+    box-shadow: inset 3px 0 0 var(--brand);
+}
+
+/* Phân trang */
+.grid-pager {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 16px 24px; flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 13px;
+}
+.grid-pager .pager-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.grid-pager .per-page { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.grid-pager .per-page select {
+    padding: 5px 8px; font-size: 13px; font-family: inherit;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; cursor: pointer;
+}
+.grid-pager .per-page select:focus { outline: none; border-color: var(--brand); }
+.grid-pager .pages { display: flex; gap: 5px; }
+.grid-pager .pages a, .grid-pager .pages span {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 34px; height: 34px; padding: 0 10px;
+    border-radius: 8px; text-decoration: none; font-size: 13px;
+    color: var(--text); border: 1px solid var(--border);
+    transition: all 0.12s;
+}
+.grid-pager .pages a:hover { background: rgba(127,127,127,0.1); border-color: var(--muted); }
+.grid-pager .pages .current {
+    background: var(--brand); color: #fff; border-color: var(--brand);
+    box-shadow: 0 2px 8px rgba(74,158,234,0.25);
+}
+.grid-pager .pages .disabled { opacity: 0.35; pointer-events: none; }
+.grid-pager .pages .gap {
+    border: none; background: transparent; color: var(--muted);
+    min-width: 20px; cursor: default;
+}
+
+/* Kéo-thả đổi cột (khi bảng có class draggable-cols) */
+.grid.draggable-cols thead th.col-draggable { cursor: grab; }
+.grid.draggable-cols thead th.col-dragging {
+    opacity: 0.5; cursor: grabbing;
+}
+.grid.draggable-cols thead th.col-drop-target {
+    box-shadow: inset 3px 0 0 var(--brand);   /* vạch xanh báo chỗ sẽ thả */
+}
+
+/* Trạng thái rỗng */
+.grid-empty { padding: 48px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+
+@media (max-width: 640px) {
+    .grid thead th, .grid tbody td { padding: 11px 13px; }
+    .grid-toolbar { padding: 14px 16px; }
+}

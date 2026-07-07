@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Grid - CRUD{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/home/grid.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="content wide">
+    <div class="grid-wrap">
+        <div class="grid-header">
+            {% include "home/_grid_header.html" with grid_title="Quản lý Route (Dạng 2: CRUD)" add_url="/demo/route/add/" back_url="/" show_search=True %}
+            <div class="gh-row2">
+                {% include "home/_grid_actions_default.html" with export_url="/demo/grid-export/" %}
+                <a class="btn-sm" href="#">🖨 In</a>
+                <a class="btn-sm" href="#">📤 Gửi mail</a>
+            </div>
+        </div>
+
+        <div class="grid-scroll">
+            <table class="grid draggable-cols">
+                <thead>
+                    <tr>
+                        {% include "home/_grid_sort_th.html" with col="code"   label="Mã Route" %}
+                        {% include "home/_grid_sort_th.html" with col="name"   label="Tuyến" %}
+                        {% include "home/_grid_sort_th.html" with col="vendor" label="Vendor" %}
+                        {% include "home/_grid_sort_th.html" with col="days"   label="Số ngày" %}
+                        {% include "home/_grid_sort_th.html" with col="status" label="Trạng thái" %}
+                        <th class="center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in page %}
+                    <tr>
+                        <td>{{ r.code }}</td>
+                        <td>{{ r.name }}</td>
+                        <td>{{ r.vendor }}</td>
+                        <td class="num">{{ r.days }}</td>
+                        <td class="center">
+                            {% if r.status == 'ok' %}<span class="badge ok">Hoạt động</span>
+                            {% elif r.status == 'warn' %}<span class="badge warn">Cảnh báo</span>
+                            {% else %}<span class="badge danger">Tạm dừng</span>{% endif %}
+                        </td>
+                        <td class="center" style="white-space:nowrap">
+                            <a class="btn-sm" href="/demo/route/{{ r.id }}/edit/">✎ Sửa</a>
+                            <a class="btn-sm danger" href="#"
+                               onclick="return confirm('Xóa Route {{ r.code }}?')">🗑 Xóa</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="grid-empty">
+                        {% if q %}Không tìm thấy kết quả cho "{{ q }}".{% else %}Chưa có dữ liệu.{% endif %}
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include "home/_grid_pager.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'js/home/grid-dragcol.js' %}"></script>
+{% endblock %}

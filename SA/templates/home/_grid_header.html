@@ -1,0 +1,19 @@
+<div class="gh-row1">
+    <div class="gh-left">
+        <h2>{{ grid_title }}</h2>
+        {% if add_url %}<a class="btn-sm primary" href="{{ add_url }}">+ Thêm Route</a>{% endif %}
+        {% if back_url %}<a class="btn-sm" href="{{ back_url }}">← Quay lại</a>{% endif %}
+    </div>
+
+    {% if show_search %}
+    <form method="get" class="grid-search gh-search">
+        <input type="text" name="gq" value="{{ q }}"
+               placeholder="Nhập thông tin tìm kiếm..." autocomplete="off">
+        {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+        {% if dir %}<input type="hidden" name="dir" value="{{ dir }}">{% endif %}
+        <input type="hidden" name="per_page" value="{{ per_page }}">
+        <button type="submit" class="btn-sm primary">Tìm</button>
+        {% if q %}<a class="btn-sm" href="?">Xóa</a>{% endif %}
+    </form>
+    {% endif %}
+</div>

@@ -55,6 +55,11 @@ TRANSLATIONS = {
     # -- Chung / topbar --
     'Đăng xuất':   {'vi': 'Đăng xuất',   'en': 'Logout',    'ja': 'ログアウト'},
     'Tìm kiếm...': {'vi': 'Tìm kiếm...',  'en': 'Search...', 'ja': '検索...'},
+    'Đang xử lý yêu cầu...': {
+        'vi': 'Đang xử lý yêu cầu...',
+        'en': 'Processing your request...',
+        'ja': 'リクエストを処理しています...',
+    },
 
     # -- Trang chưa đăng nhập --
     'Chưa đăng nhập': {'vi': 'Chưa đăng nhập', 'en': 'Not logged in', 'ja': '未ログイン'},

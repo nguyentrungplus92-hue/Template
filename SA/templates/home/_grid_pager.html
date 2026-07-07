@@ -1,0 +1,58 @@
+{% if page.paginator.num_pages > 1 or per_page_choices %}
+<div class="grid-pager">
+    <div class="pager-left">
+        <span>Trang {{ page.number }} / {{ page.paginator.num_pages }}
+              ({{ page.paginator.count }} dòng)</span>
+
+        {# Chọn số dòng mỗi trang - LUÔN hiện để đổi lại được #}
+        {% if per_page_choices %}
+        <label class="per-page">
+            Hiển thị
+            <select onchange="location.href=this.value">
+                {% for c in per_page_choices %}
+                <option value="?per_page={{ c }}&sort={{ sort }}&dir={{ dir }}&gq={{ q }}"
+                        {% if c == per_page %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+            dòng
+        </label>
+        {% endif %}
+    </div>
+
+    {# Phần nút trang chỉ hiện khi có nhiều hơn 1 trang #}
+    {% if page.paginator.num_pages > 1 %}
+    <div class="pages">
+        {# First: về trang đầu #}
+        {% if page.number > 1 %}
+            <a href="?page=1&sort={{ sort }}&dir={{ dir }}&gq={{ q }}&per_page={{ per_page }}" title="Trang đầu">«</a>
+        {% else %}<span class="disabled">«</span>{% endif %}
+
+        {# Prev #}
+        {% if page.has_previous %}
+            <a href="?page={{ page.previous_page_number }}&sort={{ sort }}&dir={{ dir }}&gq={{ q }}&per_page={{ per_page }}" title="Trang trước">‹</a>
+        {% else %}<span class="disabled">‹</span>{% endif %}
+
+        {# Các số trang (có dấu ...) #}
+        {% for n in page_window %}
+            {% if n is None %}
+                <span class="gap">…</span>
+            {% elif n == page.number %}
+                <span class="current">{{ n }}</span>
+            {% else %}
+                <a href="?page={{ n }}&sort={{ sort }}&dir={{ dir }}&gq={{ q }}&per_page={{ per_page }}">{{ n }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {# Next #}
+        {% if page.has_next %}
+            <a href="?page={{ page.next_page_number }}&sort={{ sort }}&dir={{ dir }}&gq={{ q }}&per_page={{ per_page }}" title="Trang sau">›</a>
+        {% else %}<span class="disabled">›</span>{% endif %}
+
+        {# Last: tới trang cuối #}
+        {% if page.number < page.paginator.num_pages %}
+            <a href="?page={{ page.paginator.num_pages }}&sort={{ sort }}&dir={{ dir }}&gq={{ q }}&per_page={{ per_page }}" title="Trang cuối">»</a>
+        {% else %}<span class="disabled">»</span>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}

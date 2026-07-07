@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Grid - Chỉnh sửa trực tiếp{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/home/grid.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="content wide">
+    <div class="grid-wrap">
+        <div class="grid-header">
+            {% include "home/_grid_header.html" with grid_title="Sửa Route trực tiếp (Dạng 3: editable)" add_url="#" back_url="/demo/grid-crud/" show_search=False %}
+            <div class="gh-row2">
+                {% include "home/_grid_actions_default.html" with export_url="/demo/grid-export/" %}
+                <div class="gh-row2-right">
+                    <button class="btn-sm" id="btnReset" type="button">Hoàn tác</button>
+                    <button class="btn-sm primary" id="btnSave" type="button">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-scroll">
+            <table class="grid" id="editGrid">
+                <thead>
+                    <tr>
+                        <th>Mã Route</th>
+                        <th>Tuyến</th>
+                        <th>Vendor</th>
+                        <th class="num">Số ngày</th>
+                        <th class="center">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rows %}
+                                        <tr data-id="{{ r.id }}">
+                        <td>{{ r.code }}</td>
+                        <td><input class="cell-edit" data-field="name" value="{{ r.name }}"></td>
+                        <td><input class="cell-edit" data-field="vendor" value="{{ r.vendor }}"></td>
+                        <td><input class="cell-edit num" data-field="days" type="number" value="{{ r.days }}"></td>
+                        <td class="center">
+                            <select class="cell-edit" data-field="status">
+                                <option value="ok"     {% if r.status == 'ok' %}selected{% endif %}>Hoạt động</option>
+                                <option value="warn"   {% if r.status == 'warn' %}selected{% endif %}>Cảnh báo</option>
+                                <option value="danger" {% if r.status == 'danger' %}selected{% endif %}>Tạm dừng</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <p style="color:var(--muted);font-size:13px" id="hint">
+        Sửa trực tiếp trong ô. Dòng đã đổi sẽ được tô sáng. Bấm "Lưu thay đổi"
+        để gửi. (Demo: chỉ in ra Console + hiện thông báo; nối tới API lưu thật của bạn.)
+    </p>
+</div>
+
+<script>
+(function () {
+    var grid = document.getElementById('editGrid');
+    if (!grid) return;
+
+    // Ghi lại giá trị gốc để so sánh + hoàn tác
+    grid.querySelectorAll('.cell-edit').forEach(function (el) {
+        el.dataset.orig = el.value;
+        el.addEventListener('input', markDirty);
+        el.addEventListener('change', markDirty);
+    });
+
+    function markDirty(e) {
+        var tr = e.target.closest('tr');
+        // Dòng "dirty" nếu có ít nhất 1 ô khác giá trị gốc
+        var changed = Array.from(tr.querySelectorAll('.cell-edit'))
+            .some(function (el) { return el.value !== el.dataset.orig; });
+        tr.classList.toggle('dirty', changed);
+    }
+
+    // Thu thập mọi dòng đã đổi -> mảng {id, field: value...}
+    function collectChanges() {
+        var changes = [];
+        grid.querySelectorAll('tbody tr').forEach(function (tr) {
+            var dirtyCells = Array.from(tr.querySelectorAll('.cell-edit'))
+                .filter(function (el) { return el.value !== el.dataset.orig; });
+            if (dirtyCells.length) {
+                var obj = { id: tr.dataset.id };
+                dirtyCells.forEach(function (el) { obj[el.dataset.field] = el.value; });
+                changes.push(obj);
+            }
+        });
+        return changes;
+    }
+
+    document.getElementById('btnSave').addEventListener('click', function () {
+        var changes = collectChanges();
+        if (!changes.length) { alert('Không có thay đổi nào.'); return; }
+
+        // DEMO: in ra Console. Thay bằng fetch() POST tới API lưu của bạn:
+        // fetch('/api/route/bulk-update/', {method:'POST', headers:{'Content-Type':'application/json',
+        //   'X-CSRFToken': getCsrf()}, body: JSON.stringify(changes)})
+        console.log('Thay đổi cần lưu:', changes);
+        alert('Có ' + changes.length + ' dòng thay đổi (xem Console). Nối tới API để lưu thật.');
+    });
+
+    document.getElementById('btnReset').addEventListener('click', function () {
+        grid.querySelectorAll('.cell-edit').forEach(function (el) {
+            el.value = el.dataset.orig;
+        });
+        grid.querySelectorAll('tr.dirty').forEach(function (tr) { tr.classList.remove('dirty'); });
+    });
+})();
+</script>
+{% endblock %}

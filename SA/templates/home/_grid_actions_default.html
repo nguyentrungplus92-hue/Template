@@ -1,0 +1,4 @@
+<a class="btn-sm no-loading" href="{{ export_url }}?format=csv&gq={{ q }}&sort={{ sort }}&dir={{ dir }}">📄 CSV</a>
+<a class="btn-sm no-loading" href="{{ export_url }}?format=xlsx&gq={{ q }}&sort={{ sort }}&dir={{ dir }}">📊 Excel</a>
+<a class="btn-sm no-loading" href="{{ export_url }}?format=pdf&gq={{ q }}&sort={{ sort }}&dir={{ dir }}"
+   onclick="alert('Xuất PDF chưa được bật (cần thư viện ngoài). Dùng CSV/Excel nhé.'); return false;">📕 PDF</a>

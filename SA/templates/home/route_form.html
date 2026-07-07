@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Sửa Route{% else %}Thêm Route{% endif %}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/home/grid.css' %}">
+<link rel="stylesheet" href="{% static 'css/home/form.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <div class="form-card">
+        <div class="form-head">
+            <a class="btn-sm" href="{{ back_url }}">← Quay lại</a>
+            <h2>{% if is_edit %}Sửa Route{% else %}Thêm Route mới{% endif %}</h2>
+        </div>
+
+        {# Lỗi chung của cả form (không thuộc trường nào) #}
+        {% if form.non_field_errors %}
+        <div class="form-alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {# Lặp qua từng trường, render nhãn + ô nhập + lỗi #}
+            {% for field in form %}
+            <div class="form-row {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="req">*</span>{% endif %}
+                </label>
+                <div class="form-input">
+                    {{ field }}
+                    {% if field.help_text %}<small class="help">{{ field.help_text }}</small>{% endif %}
+                    {% if field.errors %}<small class="err">{{ field.errors|join:", " }}</small>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <a class="btn-sm" href="{{ back_url }}">Hủy</a>
+                <button type="submit" class="btn-sm primary">
+                    {% if is_edit %}Lưu thay đổi{% else %}Thêm mới{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
